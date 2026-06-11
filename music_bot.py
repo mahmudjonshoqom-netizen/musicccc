@@ -269,9 +269,17 @@ async def process_search(message: types.Message, state: FSMContext):
 async def show_track_details(callback: types.CallbackQuery, state: FSMContext):
     """Show track details"""
     try:
-        # Parse callback data
-        parts = callback.data.split("_")
+        # Parse callback data - split only on first underscore to handle query strings with underscores
+        callback_data = callback.data
+        if not callback_data.startswith("track_"):
+            await callback.answer("❌ Invalid selection", show_alert=True)
+            return
+        
+        # Extract track index from callback_track_0_query format
+        parts = callback_data.split("_")
         track_idx = int(parts[1])
+        
+        logger.info(f"User {callback.from_user.id} selecting track: index={track_idx}")
         
         # Get stored tracks
         data = await state.get_data()
